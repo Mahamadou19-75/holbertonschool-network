@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
-# Configure /etc/hosts pour modifier la résolution locale de localhost et facebook.com
+# Configure /etc/hosts sans utiliser sed -i pour éviter le bug "Device or resource busy"
 
-# Remplace 127.0.0.1 par 127.0.0.2 pour localhost
-sudo sed -i 's/127.0.0.1\tlocalhost/127.0.0.2\tlocalhost/g' /etc/hosts
-sudo sed -i 's/127.0.0.1 localhost/127.0.0.2 localhost/g' /etc/hosts
+# Étape 1 : On modifie localhost en remplaçant 127.0.0.1 par 127.0.0.2 via un flux de texte
+hosts_content=$(sed 's/127.0.0.1\tlocalhost/127.0.0.2\tlocalhost/g' /etc/hosts | sed 's/127.0.0.1 localhost/127.0.0.2 localhost/g')
 
-# Ajoute ou met à jour la redirection de facebook.com vers 8.8.8.8
-if grep -q "facebook.com" /etc/hosts; then
-    sudo sed -i 's/.*facebook.com/8.8.8.8 facebook.com/g' /etc/hosts
+# Étape 2 : On gère facebook.com dans le flux de texte
+if echo "$hosts_content" | grep -q "facebook.com"; then
+    hosts_content=$(echo "$hosts_content" | sed 's/.*facebook.com/8.8.8.8 facebook.com/g')
 else
-    echo -e "8.8.8.8\tfacebook.com" | sudo tee -a /etc/hosts > /dev/null
+    hosts_content=$(echo -e "${hosts_content}\n8.8.8.8\tfacebook.com")
 fi
+
+# Étape 3 : On écrase proprement le fichier /etc/hosts avec le nouveau contenu
+echo "$hosts_content" > /etc/hosts
