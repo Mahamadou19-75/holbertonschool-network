@@ -1,15 +1,11 @@
 #!/usr/bin/env bash
-# Configure /etc/hosts sans utiliser sed -i pour éviter le bug "Device or resource busy"
+# Configure /etc/hosts sans sed -i et sans avertissement ShellCheck
 
-# Étape 1 : On modifie localhost en remplaçant 127.0.0.1 par 127.0.0.2 via un flux de texte
-hosts_content=$(sed 's/127.0.0.1\tlocalhost/127.0.0.2\tlocalhost/g' /etc/hosts | sed 's/127.0.0.1 localhost/127.0.0.2 localhost/g')
+# Étape 1 : Lire /etc/hosts et remplacer localhost (127.0.0.1) par 127.0.0.2
+# On filtre également pour ignorer l'ancienne ligne facebook.com si elle existe
+hosts_content=$(sed -e 's/127.0.0.1\tlocalhost/127.0.0.2\tlocalhost/g' \
+                    -e 's/127.0.0.1 localhost/127.0.0.2 localhost/g' /etc/hosts | grep -v "facebook.com")
 
-# Étape 2 : On gère facebook.com dans le flux de texte
-if echo "$hosts_content" | grep -q "facebook.com"; then
-    hosts_content=$(echo "$hosts_content" | sed 's/.*facebook.com/8.8.8.8 facebook.com/g')
-else
-    hosts_content=$(echo -e "${hosts_content}\n8.8.8.8\tfacebook.com")
-fi
-
-# Étape 3 : On écrase proprement le fichier /etc/hosts avec le nouveau contenu
+# Étape 2 : Écrire le nouveau contenu et ajouter la ligne facebook.com à la fin
 echo "$hosts_content" > /etc/hosts
+echo -e "8.8.8.8\tfacebook.com" >> /etc/hosts
