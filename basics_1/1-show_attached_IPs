@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Affiche toutes les adresses IPv4 actives de la machine
+
+ip -4 addr show | grep -oP 'inet \K[\d.]+'
