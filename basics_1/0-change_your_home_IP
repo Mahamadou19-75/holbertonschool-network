@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Configure /etc/hosts pour modifier la résolution locale de localhost et facebook.com
+
+# Remplace 127.0.0.1 par 127.0.0.2 pour localhost
+sudo sed -i 's/127.0.0.1\tlocalhost/127.0.0.2\tlocalhost/g' /etc/hosts
+sudo sed -i 's/127.0.0.1 localhost/127.0.0.2 localhost/g' /etc/hosts
+
+# Ajoute ou met à jour la redirection de facebook.com vers 8.8.8.8
+if grep -q "facebook.com" /etc/hosts; then
+    sudo sed -i 's/.*facebook.com/8.8.8.8 facebook.com/g' /etc/hosts
+else
+    echo -e "8.8.8.8\tfacebook.com" | sudo tee -a /etc/hosts > /dev/null
+fi
